@@ -60,25 +60,31 @@ var ListController = {
             });
     },
 
+    /**
+     * /:username/:listId/update
+     * @param req req.body.listName, req.body.items req.params.username, req.params.listId
+     * @param res
+     * @param next
+     */
+
     update: (req, res, next) => {
-        var lists;
-        q.fCall(() => {
-            return req.db.getCollection('users')
-                .find({username: req.params.username})
-                .toArray();
-        })
-            .then((results) =>{
-                lists = _.map(results.lists, (list) => {
-                    if(list.listName === req.params.listName){
-                        list.items = req.params.list.items;
+        var query = req.db.collection('users');
+        var list = req.body.list;
+        var updatedList = [];
+        q.nfcall(query.findOne.bind(query, {username: req.params.username}))
+            .then((results) => {
+                var lists = _.map(results.lists, (aList) => {
+                    if(aList.listId && aList.listId.toString() === req.params.listId){
+                        aList.items = list.items;
+                        updatedList = aList;
                     }
-                    return list;
+                    return aList;
                 });
-                return req.db.getCollection('users')
-                    .updateOne({username: req.params.username}, { $set: { lists : lists } });
+                return query.updateOne({username: req.params.username},
+                    { $set: {lists: lists} });
             })
             .then((results) => {
-                res.status(200).send(lists);
+                res.status(200).send(updatedList);
             })
             .catch((err)=>{
                 errorHandler(err);
@@ -103,7 +109,7 @@ var ListController = {
             });
     },
 
-    erase: (req, res, next) => {
+    eraseList: (req, res, next) => {
         var lists;
         q.fCall(() => {
             return req.db.getCollection('users')
@@ -115,7 +121,7 @@ var ListController = {
              return list.listName === req.params.listName;
            });
            return req.db.getCollection('users')
-               .updateOne({username: req.params.username}, { $set: { lists : lists } });
+               .updateOne({username: req.params.username}, { $set: {lists: lists} });
         })
         .then((results) => {
             res.status(200).send(lists);

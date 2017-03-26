@@ -37,7 +37,7 @@ app.get('/:username/:listId', listController.getList);
 app.get('/:username', listController.getAll);
 app.post('/:username/create', listController.createList);
 app.post('/:username/:listId/update', listController.update);
-app.post('/:username/:listId/erase', listController.erase);
+app.post('/:username/:listId/erase', listController.eraseList);
 app.post('/:username/:listId/upload', listController.uploadReceipt);
 
 // catch 404 and forward to error handler
