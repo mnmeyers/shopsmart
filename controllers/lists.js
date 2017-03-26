@@ -8,8 +8,8 @@ const ObjectID = require('mongodb').ObjectID;
 
 var ListController = {
     getAll: (req, res, next) => {
-        q.nfcall(req.db.collection('users')
-            .find.bind(req.db.collection('users'), {username: req.params.username}))
+        var query = req.db.collection('users');
+        q.nfcall(query.find.bind(query, {username: req.params.username}))
             .then((results) => {
                 return results.toArray();
             })
@@ -23,8 +23,8 @@ var ListController = {
     },
 
     getList: (req, res, next) => {
-        q.nfcall(req.db.collection('users')
-            .find.bind(req.db.collection('users'), {username: req.params.username}))
+        var query = req.db.collection('users');
+        q.nfcall(query.find.bind(query, {username: req.params.username}))
             .then((results) => {
                 return results.toArray();
             })
@@ -42,8 +42,8 @@ var ListController = {
     },
 
     getListByName: (req, res, next) => {
-        q.nfcall(req.db.collection('users')
-            .find.bind(req.db.collection('users'), {username: req.params.username}))
+        var query = req.db.collection('users');
+        q.nfcall(query.find.bind(query, {username: req.params.username}))
             .then((results) => {
                 return results.toArray();
             })
@@ -94,11 +94,10 @@ var ListController = {
 
     createList: (req, res, next) => {
         var list = req.body.list;
-        var self = this;
+        var query = req.db.collection('users');
         list.listId = new ObjectID();
-        q.nfcall(req.db.collection('users')
-            .findOneAndUpdate.bind(req.db.collection('users'),
-                {username: req.params.username}, {$push: {lists: list}}))
+        q.nfcall(query.findOneAndUpdate.bind(query,
+                {username: req.params.username}, {$push: {lists: list} }) )
             .then((results) => {
                 req.params.listName = list.listName;
                return module.exports.getListByName(req, res, next);
@@ -110,26 +109,22 @@ var ListController = {
     },
 
     eraseList: (req, res, next) => {
-        var lists;
-        q.fCall(() => {
-            return req.db.getCollection('users')
-                .find({username: req.params.username})
-                .toArray();
-        })
-        .then((results) => {
-           lists = _.reject(results.lists, (list) => {
-             return list.listName === req.params.listName;
-           });
-           return req.db.getCollection('users')
-               .updateOne({username: req.params.username}, { $set: {lists: lists} });
-        })
-        .then((results) => {
-            res.status(200).send(lists);
-        })
-        .catch((err) => {
-            errorHandler(err);
-            res.send(500);
-        });
+        var query = req.db.collection('users');
+        q.nfcall(query.findOne.bind(query, {username: req.params.username}))
+            .then((results) => {
+                var lists = _.reject(results.lists, (aList) => {
+                    return aList.listId && aList.listId.toString() === req.params.listId;
+                });
+                return query.updateOne({username: req.params.username},
+                    { $set: {lists: lists} });
+            })
+            .then((results) => {
+                res.status(200).send();
+            })
+            .catch((err)=>{
+                errorHandler(err);
+                res.send(500);
+            });
     },
 
     uploadReceipt: (req, res, next) => {
