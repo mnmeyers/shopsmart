@@ -29,9 +29,9 @@ var ListController = {
                 return results.toArray();
             })
             .then((results) => {
-                var list = _.filter(results, (aList) => {
-                    //TODO change _id to listId
-                    return aList._id.toString() === req.params.listId;
+                var lists = results[0] && results[0].lists ? results[0].lists : [];
+                var list = _.filter(lists, (aList) => {
+                    return aList.listId && aList.listId.toString() === req.params.listId;
                 });
                 res.status(200).send(list);
             })
