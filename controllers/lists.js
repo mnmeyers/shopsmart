@@ -18,7 +18,7 @@ var ListController = {
             })
             .catch((err) => {
                 errorHandler(err);
-                res.sendStatus(500);
+                res.sendStatus(err.status || 500);
             });
     },
 
@@ -37,7 +37,7 @@ var ListController = {
             })
             .catch((err) => {
                 errorHandler(err);
-                res.sendStatus(500);
+                res.sendStatus(err.status || 500);
             });
     },
 
@@ -56,13 +56,13 @@ var ListController = {
             })
             .catch((err) => {
                 errorHandler(err);
-                res.sendStatus(500);
+                res.sendStatus(err.status || 500);
             });
     },
 
     /**
      * /:username/:listId/update
-     * @param req req.body.listName, req.body.items req.params.username, req.params.listId
+     * @param req req.db, req.body.listName, req.body.items req.params.username, req.params.listId
      * @param res
      * @param next
      */
@@ -88,7 +88,7 @@ var ListController = {
             })
             .catch((err)=>{
                 errorHandler(err);
-                res.send(500);
+                res.send(err.status || 500);
             });
     },
 
@@ -104,7 +104,7 @@ var ListController = {
             })
             .catch((err) => {
                 errorHandler(err);
-                res.sendStatus(500);
+                res.sendStatus(err.status || 500);
             });
     },
 
@@ -123,12 +123,30 @@ var ListController = {
             })
             .catch((err)=>{
                 errorHandler(err);
-                res.send(500);
+                res.send(err.status || 500);
             });
     },
 
     uploadReceipt: (req, res, next) => {
         //put picture somewhere, then send url to parseReceiptService
+        if (!req.files) return res.status(400).send('No files were uploaded.');
+
+        // The name of the input field (i.e. "receiptFile") is used to retrieve the uploaded file
+        let receiptFile = req.files.receiptFile;
+        let location = __dirname + '/receiptImages/temp.jpg';
+
+        // Use the mv() method to place the file somewhere on server
+
+        q.nfcall(receiptFile.mv.bind(receiptFile, location))
+            //before step below need to send to parsereceiptservice and then parse and then
+            //hit update endpoint
+            .then(() => {
+                res.status(200).send('File uploaded!');
+            })
+            .catch((err) => {
+                errorHandler(err);
+                res.status(err.status || 500).send(err);
+            });
 
     }
 };

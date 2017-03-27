@@ -10,7 +10,9 @@ var errorHandler = require('./errorHandler');
 var index = require('./routes/index');
 var listController = require('./controllers/lists');
 
+const fileUpload = require('express-fileupload');
 
+// default options
 var app = express();
 var mongo = require('mongodb').MongoClient;
 var db;
@@ -25,6 +27,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(fileUpload());
 
 
 app.use(function(req, res, next){

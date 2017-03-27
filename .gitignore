@@ -3,6 +3,7 @@ secrets.js
 # IntelliJ project files
 .idea
 *.iml
+controllers/receiptImages/*
 out
 gen### Node template
 # Logs
