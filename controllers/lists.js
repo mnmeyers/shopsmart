@@ -5,6 +5,12 @@ var q = require('q');
 var parseReceiptService = require('../services/parseReceiptService');
 const fileUpload = require('express-fileupload');
 const ObjectID = require('mongodb').ObjectID;
+// Load the SDK and UUID
+var AWS = require('aws-sdk');
+var fs = require('fs');
+
+// Create an S3 client
+// var s3 = new AWS.S3();
 
 var ListController = {
     getAll: (req, res, next) => {
@@ -134,15 +140,24 @@ var ListController = {
         // The name of the input field (i.e. "receiptFile") is used to retrieve the uploaded file
         let receiptFile = req.files.receiptFile;
         let location = __dirname + '/receiptImages/temp.jpg';
-
+        let url = 'https://s3-us-west-1.amazonaws.com/shop-smart/alwaysUseSameKey';
         // Use the mv() method to place the file somewhere on server
 
         q.nfcall(receiptFile.mv.bind(receiptFile, location))
             //before step below need to send to parsereceiptservice and then parse and then
             //hit update endpoint
             .then(() => {
-                res.status(200).send('File uploaded!');
+                return fs.createReadStream(location);
             })
+            .then((stream) => {
+                var params = {Bucket: 'shop-smart', Key: 'alwaysUseSameKey', Body: stream, ContentType: 'image/jpeg'};
+                var upload = new AWS.S3.ManagedUpload({params: params});
+                return upload.send();
+            })
+            .then(parseReceiptService.readReceipt.bind(parseReceiptService, url, req, res, next))
+            // .then(() => {
+            //     res.status(200).send('File uploaded!');//TODO will call `update` endpoint above with formatted items list when parsereceiptservice done
+            // })
             .catch((err) => {
                 errorHandler(err);
                 res.status(err.status || 500).send(err);

@@ -7,6 +7,7 @@
   },
   "dependencies": {
     "algorithmia": "^0.3.8",
+    "aws-sdk": "^2.40.0",
     "body-parser": "~1.15.2",
     "cookie-parser": "~1.4.3",
     "debug": "~2.2.0",
